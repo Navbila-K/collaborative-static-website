@@ -89,6 +89,49 @@
           </div>
         </div>
       </section>
+
+      <!-- ================= NEW CONTENT ADDED ================= -->
+
+      <section id="vision">
+        <h2 class="reveal">Design Philosophy</h2>
+        <p class="reveal delay-1">
+          This project explores the intersection of precision engineering and visual storytelling.
+          Each element is engineered to feel intentional, fluid, and emotionally resonant.
+        </p>
+      </section>
+
+      <section id="principles">
+        <h2 class="reveal">Core Principles</h2>
+        <div class="card-grid">
+          <div class="premium-card reveal">
+            <div class="card-content">
+              <h3>Minimalism</h3>
+              <p>Every pixel serves a purpose. No excess. No distraction.</p>
+            </div>
+          </div>
+          <div class="premium-card reveal delay-1">
+            <div class="card-content">
+              <h3>Motion Logic</h3>
+              <p>Animation is not decoration. It is structural feedback.</p>
+            </div>
+          </div>
+          <div class="premium-card reveal delay-2">
+            <div class="card-content">
+              <h3>Human Focus</h3>
+              <p>Interfaces designed around perception, not just code.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="future">
+        <h2 class="reveal">Future Expansion</h2>
+        <p class="reveal delay-1">
+          Planned evolutions include 3D spatial layouts, adaptive theme engines,
+          and AI-assisted interaction layers to elevate static design into reactive systems.
+        </p>
+      </section>
+
     </main>
 
     <footer>
@@ -99,7 +142,6 @@
 
   <!-- Interactive logic -->
   <script>
-    // Blob follow cursor physics
     const blob = document.getElementById("glow-blob");
     document.body.onpointermove = event => {
       const { clientX, clientY } = event;
@@ -109,7 +151,6 @@
       }, { duration: 3000, fill: "forwards" });
     };
 
-    // Scroll reveal observer
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
@@ -120,7 +161,6 @@
 
     document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 
-    // Trigger initial reveals on load
     setTimeout(() => {
       document.querySelectorAll('.hero.reveal, .hero .reveal').forEach(el => el.classList.add('active'));
     }, 100);
