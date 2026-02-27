@@ -25,11 +25,12 @@ This project was collaboratively created by a team of learners who each contribu
 
 ## 🗂️ File Structure
 collaborative-static-website/
-├── index.html # Home page
-├── about.html # About page
-├── contact.html # Contact page
-├── style.css # Shared stylesheet
-└── README.md # This file
+collaborative-static-website/
+├── index.html      # Home page
+├── about.html      # About page
+├── contact.html    # Contact page
+├── style.css       # Shared stylesheet
+└── README.md       # This file
 
 
 Each HTML page represents a section of the site with navigation between them.
@@ -45,16 +46,15 @@ Each HTML page represents a section of the site with navigation between them.
 
 - 📌 HTML5 — page structure
 - 🎨 CSS3 — styling and layout
-- 🧲 JavaScript — interactive elements
 
 ## 🙌 Contributors
 
-| Name               | Role |
-|-------------------|------|
-| **Navbila K**     | Home page development |
-| **Sarathipriyan** | About page development |
-| **Guru Prasad**   | Contact page development |
-| **Guruprasath S K** | CSS design |
+| Name               
+|-------------------
+| **Navbila K**     
+| **Sarathipriyan** 
+| **Guru Prasad**   
+| **Guruprasath S K** 
 
 ## 💡 How to Contribute
 
