@@ -1,74 +1,100 @@
 
 # Collaborative Static Website
 
-A simple collaborative static website built as a learning project to explore core frontend development using **HTML**, **CSS**, and a small amount of **JavaScript**.
+A collaborative static website built as a learning project to explore core frontend development using HTML and CSS, with light use of JavaScript for interactivity.
 
-This repository contains a multi-page static site with `index.html`, `about.html`, and `contact.html` — each designed and contributed by different team members as part of a group activity.
+This repository contains a multi-page static site with index.html, about.html, and contact.html — each designed and contributed by different team members as part of a group activity.
 
-## 🌐 Live Demo
+🌐 Live Demo
 
-You can host this site easily using **GitHub Pages** — a free service for serving static websites directly from GitHub repositories. :contentReference[oaicite:0]{index=0}
+You can host this site easily using GitHub Pages, a free service for serving static websites directly from GitHub repositories.
 
-For example:
+Example URL:
+
 https://Navbila-K.github.io/collaborative-static-website
 
-> *Note:* If GitHub Pages shows the README instead of the site, make sure your site settings select the branch with your HTML files and include a `.nojekyll` file to serve them properly. :contentReference[oaicite:1]{index=1}
+Note:
+If GitHub Pages shows the README instead of the website, make sure:
 
-## 🧠 Project Overview
+The correct branch is selected in GitHub Pages settings
 
-This project was collaboratively created by a team of learners who each contributed specific pages and design elements. The goal was to:
+Your HTML files are in the root folder
 
-- Understand HTML page structure
-- Practice linking multiple pages
-- Style with CSS
-- Add simple interactivity with JavaScript
+A .nojekyll file is added (optional but helpful)
 
-## 🗂️ File Structure
-collaborative-static-website/
+🧠 Project Overview
+
+This project was collaboratively created by a team of learners who each contributed specific pages and design elements.
+The main goals of this project are to:
+
+Understand HTML page structure
+
+Practice linking multiple pages
+
+Style pages using CSS
+
+Work collaboratively using Git and GitHub
+
+Build a simple static website
+
+🗂️ File Structure
 collaborative-static-website/
 ├── index.html      # Home page
 ├── about.html      # About page
 ├── contact.html    # Contact page
 ├── style.css       # Shared stylesheet
-└── README.md       # This file
+└── README.md       # Project documentation
+
+Each HTML file represents a section of the website with navigation links connecting them.
+
+🚀 Features
+
+Multi-page static website
+
+Navigation bar for easy page switching
+
+Shared CSS styling across all pages
+
+Clean and simple layout
+
+Beginner-friendly structure
+
+Collaborative development model
+
+🛠️ Technologies Used
+
+HTML5 — page structure
+
+CSS3 — styling and layout
+
+JavaScript — basic interactivity
+
+Git & GitHub — version control and collaboration
+
+🙌 Contributors
+Name
+Navbila K
+Sarathipriyan
+Guru Prasad
+Guruprasath S K
+💡 How to Contribute
+
+Fork the repository
+
+Create a new branch (example: feature-update)
+
+Make your changes
+
+Commit with a meaningful message
+
+Push to your fork
+
+Open a Pull Request
+
+📄 License
+
+This project is open-source and free to use for learning and educational purposes.
+You may add an MIT License or any other open-source license if needed.
 
 
-Each HTML page represents a section of the site with navigation between them.
 
-## 🚀 Features
-
-- **Multi-page Static Site** — simple navigation linking pages
-- **Responsive Navigation Bar**
-- **Visual Enhancements** — animations and design flourishes
-- **Collaborative Contribution Model**
-
-## 🛠️ Technologies Used
-
-- 📌 HTML5 — page structure
-- 🎨 CSS3 — styling and layout
-
-## 🙌 Contributors
-
-| Name               
-|-------------------
-| **Navbila K**     
-| **Sarathipriyan** 
-| **Guru Prasad**   
-| **Guruprasath S K** 
-
-## 💡 How to Contribute
-
-1. Fork the repository
-2. Create a new branch (e.g., `feature-update`)
-3. Make your changes
-4. Commit with descriptive message
-5. Open a pull request
-
-## 📄 License
-
-This project is open-source and free to use. You can add an open license like MIT if desired.
-
----
-
-If you *want*, I can also turn this into a **GitHub Pages landing page template** (with badges, screenshots, etc.) to make your project look more professional! Just ask. 🚀
-::contentReference[oaicite:2]{index=2}
