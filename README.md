@@ -1,4 +1,4 @@
-# collaborative-static-website
+
 # Collaborative Static Website
 
 A simple collaborative static website built as a learning project to explore core frontend development using **HTML**, **CSS**, and a small amount of **JavaScript**.
