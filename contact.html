@@ -2,106 +2,111 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Connect - Unmatched Experience</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact – TripSync Hub</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <!-- Background Effects -->
-    <div class="noise-overlay"></div>
-    <div id="glow-blob"></div>
-    <div id="blurred-backdrop"></div>
+  <!-- Background Core -->
+  <div class="mesh-bg"></div>
+  <div class="noise-overlay"></div>
+  <div id="glow-orb"></div>
 
-    <!-- Content Layer -->
-    <div class="content-wrapper">
+  <!-- Content Layer -->
+  <div class="content-wrapper">
 
-        <nav>
-            <a href="index.html">Index</a>
-            <a href="about.html">Architecture</a>
-            <a href="contact.html" class="active">Connect</a>
-        </nav>
+    <nav>
+      <a href="index.html">Home</a>
+      <a href="about.html">Journeys</a>
+      <a href="contact.html" class="active">Contact</a>
+    </nav>
 
-        <main>
-            <section class="hero reveal" style="min-height: auto; padding-top: 180px; padding-bottom: 40px;">
-                <h1 style="font-size: clamp(3rem, 6vw, 6rem);">Initialize Sequence</h1>
-            </section>
+    <main>
+      <section class="hero rvl" style="min-height: auto; padding-top: 180px; padding-bottom: 60px;">
+        <h1 style="font-size: clamp(3rem, 7vw, 8rem);">Talk to the Crew</h1>
+      </section>
 
-            <section style="padding-top: 0">
-                <div class="contact-container reveal delay-1">
+      <section style="padding-top: 0">
+        <div class="contact-grid rvl d-1">
 
-                    <div class="contact-meta">
-                        <p>Establish a direct sub-ether link with the architects of this digital construct.</p>
+          <form class="terminal-form" onsubmit="event.preventDefault(); alert('Your journey request has been noted.');">
+            <div class="input-wrapper">
+              <input type="text" id="name" class="input-field" required>
+              <label for="name" class="input-label">Traveler Name</label>
+            </div>
 
-                        <div class="meta-details">
-                            <div class="meta-item">
-                                <span>Secure Channel</span>
-                                <p>sys.admin@collaborative.io</p>
-                            </div>
-                            <div class="meta-item">
-                                <span>Frequency</span>
-                                <p>+91 98765 43210</p>
-                            </div>
-                            <div class="meta-item">
-                                <span>Coordinates</span>
-                                <p>Tamil Nadu, Terra</p>
-                            </div>
-                        </div>
-                    </div>
+            <div class="input-wrapper">
+              <input type="email" id="email" class="input-field" required>
+              <label for="email" class="input-label">Contact Email</label>
+            </div>
 
-                    <form class="neo-form" onsubmit="event.preventDefault(); alert('Transmission Successful.');">
-                        <div class="input-group">
-                            <input type="text" id="name" required>
-                            <label for="name">Identifier (Name)</label>
-                        </div>
+            <div class="input-wrapper">
+              <textarea id="message" class="input-field" required></textarea>
+              <label for="message" class="input-label">Trip Details or Questions</label>
+            </div>
 
-                        <div class="input-group">
-                            <input type="email" id="email" required>
-                            <label for="email">Return Protocol (Email)</label>
-                        </div>
+            <button type="submit" class="magnet-btn">Send Journey Brief</button>
+          </form>
 
-                        <div class="input-group">
-                            <textarea id="message" required></textarea>
-                            <label for="message">Data Payload (Message)</label>
-                        </div>
+          <div class="meta-stats rvl d-2">
+            <div class="stat-block">
+              <span class="stat-label">Support Email</span>
+              <div class="stat-value">support<br>@tripsynchub.io</div>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Helpline</span>
+              <div class="stat-value">+91 98765<br>43210</div>
+            </div>
+            <div class="stat-block">
+              <span class="stat-label">Base Location</span>
+              <div class="stat-value">Tamil Nadu<br>India</div>
+            </div>
+          </div>
 
-                        <button type="submit" class="magnet-btn">Transmit Data</button>
-                    </form>
+        </div>
+      </section>
+    </main>
 
-                </div>
-            </section>
-        </main>
+    <footer>
+      <p>© 2026 TripSync Hub. Concept travel & food experience by the team.</p>
+    </footer>
 
-        <footer style="margin-top: auto">
-            <p>© 2026 The Collaborative. A paradigm shift in static web.</p>
-        </footer>
+  </div>
 
-    </div>
+  <script>
+    const orb = document.getElementById("glow-orb");
+    document.body.onpointermove = event => {
+      const { clientX, clientY } = event;
+      orb.animate({ left: `${clientX}px`, top: `${clientY}px` }, { duration: 4000, fill: "forwards" });
+    };
 
-    <script>
-        const blob = document.getElementById("glow-blob");
-        document.body.onpointermove = event => {
-            const { clientX, clientY } = event;
-            blob.animate({
-                left: `${clientX}px`,
-                top: `${clientY}px`
-            }, { duration: 3000, fill: "forwards" });
-        };
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) { entry.target.classList.add('visible'); }
+      });
+    }, { threshold: 0.15 });
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach((entry) => {
-                if (entry.isIntersecting) { entry.target.classList.add('active'); }
-            });
-        }, { threshold: 0.1 });
+    document.querySelectorAll('.rvl').forEach((el) => observer.observe(el));
 
-        document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    setTimeout(() => {
+      document.querySelectorAll('.rvl').forEach(el => el.classList.add('visible'));
+    }, 150);
 
-        setTimeout(() => {
-            document.querySelectorAll('.reveal').forEach(el => el.classList.add('active'));
-        }, 100);
-    </script>
+    // Button Magnetic Hover
+    const btn = document.querySelector('.magnet-btn');
+    btn.addEventListener('mousemove', (e) => {
+      const rect = btn.getBoundingClientRect();
+      const x = e.clientX - rect.left - rect.width / 2;
+      const y = e.clientY - rect.top - rect.height / 2;
+      btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px) scale(1.05)`;
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.transform = `translate(0px, 0px) scale(1)`;
+    });
+  </script>
 </body>
 
 </html>
