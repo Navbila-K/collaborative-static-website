@@ -10,14 +10,11 @@
 
 <body>
 
-  <!-- Background Core -->
   <div class="mesh-bg"></div>
   <div class="noise-overlay"></div>
   <div id="glow-orb"></div>
 
-  <!-- Content Layer -->
   <div class="content-wrapper">
-
     <nav>
       <a href="index.html">Home</a>
       <a href="about.html" class="active">Journeys</a>
@@ -25,29 +22,56 @@
     </nav>
 
     <main>
-      <section class="hero rvl" style="min-height: 50vh;">
+      <section class="hero rvl" style="min-height: 55vh;">
         <h1 style="font-size: clamp(3rem, 8vw, 9rem);">The Journey Blueprint</h1>
       </section>
 
       <section style="padding-top: 0">
         <div class="rvl d-1">
           <p class="blueprint-text">
-            TripSync Hub is our thought experiment: what if planning a train or bus trip — and the food that follows
-            you along the way — felt as carefully designed as an airport lounge?
+            TripSync Hub is a speculative interface that treats trains, buses, and food as one connected journey —
+            not three separate chores.
           </p>
           <div class="blueprint-container rvl d-2">
             <p class="blueprint-sub">
-              Instead of splitting the traveler’s attention across multiple apps, counters, and paper tickets, we
-              imagine a single surface that understands routes, seats, and meals as one continuous story. Every glow,
-              gradient, and card layout on this site is a prototype panel from that imagined control room.
+              Traditional booking flows ask travelers to think like systems: pick a train here, a bus there, and find
+              food somewhere in the middle. This concept flips the lens. We design for how people actually move:
+              origin to destination, with every leg and every bite stitched into one calm timeline.
             </p>
           </div>
           <div class="blueprint-container rvl d-3">
             <p class="blueprint-sub">
-              Technically, the project is intentionally minimal: static HTML, CSS, and a thin layer of JavaScript for
-              motion — proving that a premium, cinematic travel interface does not require heavy frameworks. The focus
-              stays on hierarchy, timing, and clarity so real travelers could move through decisions quickly, even
-              under pressure.
+              The interface is intentionally built with static tools — HTML, CSS, and slim JavaScript —
+              so the weight stays on composition: typography, motion logic, glassmorphism, and spatial hierarchy.
+              The neon glows and 3D cards here are not decoration; they are structure, guiding eyes through decisions
+              when time and attention are limited.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="architecture">
+        <h2 class="rvl">Interface Architecture</h2>
+        <div class="architecture-grid">
+          <div class="arch-card rvl d-1">
+            <h3>Information Lanes</h3>
+            <p>
+              Core actions — route choice, seat locking, food sync — each live in their own visual lane.
+              This keeps decisions separated but visually connected, like clear tracks in a station yard.
+            </p>
+          </div>
+          <div class="arch-card rvl d-2">
+            <h3>Motion as Guidance</h3>
+            <p>
+              Scroll reveals, 3D tilts, and soft timings are tuned to feel physical.
+              Instead of overwhelming users, motion helps them scan what changed and what to do next.
+            </p>
+          </div>
+          <div class="arch-card rvl d-3">
+            <h3>Calm Under Load</h3>
+            <p>
+              Travel planning is high‑stress. Color, spacing, and copy are deliberately minimal,
+              so even a data‑heavy screen feels breathable, like a quiet control room.
             </p>
           </div>
         </div>
@@ -57,7 +81,6 @@
     <footer>
       <p>© 2026 TripSync Hub. Concept travel & food experience by the team.</p>
     </footer>
-
   </div>
 
   <script>
