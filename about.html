@@ -4,76 +4,80 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Architecture - Unmatched Experience</title>
+  <title>Journeys – TripSync Hub</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-  <!-- Background Effects -->
+  <!-- Background Core -->
+  <div class="mesh-bg"></div>
   <div class="noise-overlay"></div>
-  <div id="glow-blob"></div>
-  <div id="blurred-backdrop"></div>
+  <div id="glow-orb"></div>
 
   <!-- Content Layer -->
   <div class="content-wrapper">
 
     <nav>
-      <a href="index.html">Index</a>
-      <a href="about.html" class="active">Architecture</a>
-      <a href="contact.html">Connect</a>
+      <a href="index.html">Home</a>
+      <a href="about.html" class="active">Journeys</a>
+      <a href="contact.html">Contact</a>
     </nav>
 
     <main>
-      <section class="hero reveal">
-        <h1 style="font-size: clamp(3rem, 6vw, 7rem);">The Blueprint</h1>
+      <section class="hero rvl" style="min-height: 50vh;">
+        <h1 style="font-size: clamp(3rem, 8vw, 9rem);">The Journey Blueprint</h1>
       </section>
 
       <section style="padding-top: 0">
-        <div class="premium-card reveal">
-          <div class="card-content" style="padding: 100px 8vw;">
-            <p
-              style="font-size: 2rem; color: #fff; max-width: 1000px; line-height: 1.4; margin-bottom: 40px; font-weight: 400; letter-spacing: -0.02em;">
-              We didn't just write code; we engineered an aesthetic singularity. This project serves as an apex study in
-              redefining what bare-minimum HTML and CSS can achieve when pushed to the absolute theoretical limit.
+        <div class="rvl d-1">
+          <p class="blueprint-text">
+            TripSync Hub is our thought experiment: what if planning a train or bus trip — and the food that follows
+            you along the way — felt as carefully designed as an airport lounge?
+          </p>
+          <div class="blueprint-container rvl d-2">
+            <p class="blueprint-sub">
+              Instead of splitting the traveler’s attention across multiple apps, counters, and paper tickets, we
+              imagine a single surface that understands routes, seats, and meals as one continuous story. Every glow,
+              gradient, and card layout on this site is a prototype panel from that imagined control room.
             </p>
-            <p style="font-size: 1.5rem; max-width: 800px;">
-              By combining sub-pixel rendering tricks, SVG fractals, fluid geometry, and mathematically perfect kerning,
-              the collaborative effort stands alone. No one can meet this standard without resorting to multi-megabyte
-              JavaScript frameworks.
+          </div>
+          <div class="blueprint-container rvl d-3">
+            <p class="blueprint-sub">
+              Technically, the project is intentionally minimal: static HTML, CSS, and a thin layer of JavaScript for
+              motion — proving that a premium, cinematic travel interface does not require heavy frameworks. The focus
+              stays on hierarchy, timing, and clarity so real travelers could move through decisions quickly, even
+              under pressure.
             </p>
           </div>
         </div>
       </section>
     </main>
 
-    <footer style="margin-top: auto">
-      <p>© 2026 The Collaborative. A paradigm shift in static web.</p>
+    <footer>
+      <p>© 2026 TripSync Hub. Concept travel & food experience by the team.</p>
     </footer>
 
   </div>
 
   <script>
-    const blob = document.getElementById("glow-blob");
+    const orb = document.getElementById("glow-orb");
     document.body.onpointermove = event => {
       const { clientX, clientY } = event;
-      blob.animate({
-        left: `${clientX}px`,
-        top: `${clientY}px`
-      }, { duration: 3000, fill: "forwards" });
+      orb.animate({ left: `${clientX}px`, top: `${clientY}px` }, { duration: 4000, fill: "forwards" });
     };
 
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) { entry.target.classList.add('active'); }
+        if (entry.isIntersecting) { entry.target.classList.add('visible'); }
       });
-    }, { threshold: 0.1 });
+    }, { threshold: 0.15 });
 
-    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+    document.querySelectorAll('.rvl').forEach((el) => observer.observe(el));
 
     setTimeout(() => {
-      document.querySelectorAll('.hero.reveal, .hero .reveal').forEach(el => el.classList.add('active'));
-    }, 100);
+      document.querySelectorAll('.hero.rvl, .hero .rvl').forEach(el => el.classList.add('visible'));
+    }, 150);
   </script>
 </body>
 
