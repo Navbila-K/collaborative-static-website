@@ -1,107 +1,725 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Journeys – TripSync Hub</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Journey Blueprint — TripSync Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+    :root {
+      --ink: #0a0a0f;
+      --paper: #f5f2ec;
+      --gold: #c9a84c;
+      --gold-light: #e8cc7a;
+      --rust: #c45c2e;
+      --teal: #1a6b6b;
+      --muted: #8a8070;
+      --border: rgba(201,168,76,0.18);
+      --ff-display: 'Cormorant Garamond', serif;
+      --ff-ui: 'Syne', sans-serif;
+      --ff-mono: 'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--ff-display);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ─── CURSOR ────────────────────────────────────── */
+    #cursor-dot {
+      width: 8px; height: 8px;
+      background: var(--gold); border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: transform 0.1s, background 0.3s;
+    }
+    #cursor-ring {
+      width: 36px; height: 36px;
+      border: 1px solid rgba(201,168,76,0.5); border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%,-50%);
+      transition: width 0.4s, height 0.4s, opacity 0.3s;
+    }
+    body.cursor-hover #cursor-dot { transform: translate(-50%,-50%) scale(2.5); background: var(--rust); }
+    body.cursor-hover #cursor-ring { width: 60px; height: 60px; opacity: 0.4; }
+
+    /* ─── CANVAS ────────────────────────────────────── */
+    #bg-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+    /* ─── NAV ───────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.5rem 3rem;
+      background: linear-gradient(to bottom, rgba(10,10,15,0.9) 0%, transparent 100%);
+      backdrop-filter: blur(2px);
+    }
+    .nav-logo {
+      font-family: var(--ff-ui); font-size: 0.95rem;
+      font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--gold); text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      font-family: var(--ff-mono); font-size: 0.75rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(245,242,236,0.55); text-decoration: none;
+      transition: color 0.3s; position: relative;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: -4px; left: 0; right: 100%;
+      height: 1px; background: var(--gold);
+      transition: right 0.35s cubic-bezier(0.16,1,0.3,1);
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--gold); }
+    .nav-links a:hover::after, .nav-links a.active::after { right: 0; }
+
+    /* ─── PAGE ──────────────────────────────────────── */
+    .page { position: relative; z-index: 1; }
+
+    /* ─── HERO ──────────────────────────────────────── */
+    .hero {
+      min-height: 80vh; padding: 0 3rem 5rem;
+      display: flex; flex-direction: column; justify-content: flex-end;
+      position: relative; overflow: hidden;
+    }
+    .hero-breadcrumb {
+      font-family: var(--ff-mono); font-size: 0.68rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--gold); display: flex; align-items: center; gap: 0.6rem;
+      margin-bottom: 2rem;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp 0.7s 0.3s forwards;
+    }
+    .hero-breadcrumb a {
+      color: var(--muted); text-decoration: none; transition: color 0.3s;
+    }
+    .hero-breadcrumb a:hover { color: var(--gold); }
+    .hero-breadcrumb .sep { color: var(--muted); }
+
+    h1.hero-title {
+      font-family: var(--ff-display);
+      font-size: clamp(4rem, 10vw, 11rem);
+      font-weight: 300; line-height: 0.9;
+      letter-spacing: -0.02em; color: var(--paper);
+      opacity: 0; transform: translateY(40px);
+      animation: fadeUp 1s 0.5s forwards;
+    }
+    h1.hero-title em { font-style: italic; color: var(--gold); }
+
+    .hero-desc {
+      max-width: 600px; margin-top: 2.5rem;
+      font-family: var(--ff-display); font-size: clamp(1rem, 1.4vw, 1.2rem);
+      font-weight: 300; line-height: 1.75; color: rgba(245,242,236,0.55);
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp 0.8s 0.9s forwards;
+    }
+
+    /* Decorative rule */
+    .hero-line {
+      position: absolute; bottom: 0; left: 3rem; right: 3rem;
+      height: 1px; background: var(--border);
+      transform: scaleX(0); transform-origin: left;
+      animation: lineGrow 1.2s 1.2s cubic-bezier(0.16,1,0.3,1) forwards;
+    }
+    @keyframes lineGrow { to { transform: scaleX(1); } }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+    /* ─── MARQUEE ───────────────────────────────────── */
+    .marquee-band {
+      overflow: hidden; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 1.1rem 0; background: rgba(201,168,76,0.03);
+    }
+    .marquee-track {
+      display: flex; gap: 3rem;
+      animation: marquee 28s linear infinite; width: max-content;
+    }
+    .marquee-item {
+      font-family: var(--ff-mono); font-size: 0.7rem;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted); white-space: nowrap;
+      display: flex; align-items: center; gap: 1.5rem;
+    }
+    .marquee-item::after { content: '◆'; color: var(--gold); font-size: 0.45rem; }
+    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* ─── SECTIONS ──────────────────────────────────── */
+    section { padding: 7rem 3rem; }
+    .section-eyebrow {
+      font-family: var(--ff-mono); font-size: 0.68rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .section-eyebrow::before { content: ''; flex: 0 0 40px; height: 1px; background: var(--gold); }
+    h2.section-title {
+      font-family: var(--ff-display); font-size: clamp(2.8rem, 5vw, 5.5rem);
+      font-weight: 300; line-height: 1.05; letter-spacing: -0.01em;
+      color: var(--paper); max-width: 16ch;
+    }
+    h2.section-title em { font-style: italic; color: var(--gold); }
+
+    /* ─── MANIFESTO ─────────────────────────────────── */
+    #manifesto { padding-top: 6rem; }
+    .manifesto-layout {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 6rem; align-items: start; margin-top: 4rem;
+    }
+    .manifesto-left { position: sticky; top: 8rem; }
+    .manifesto-number {
+      font-family: var(--ff-display); font-size: 7rem;
+      font-weight: 300; color: rgba(201,168,76,0.1);
+      line-height: 1; margin-bottom: -1rem;
+    }
+    .manifesto-right { display: flex; flex-direction: column; gap: 0; }
+    .manifesto-block {
+      padding: 2.75rem 0; border-bottom: 1px solid var(--border);
+      opacity: 0; transform: translateX(25px);
+      transition: opacity 0.7s, transform 0.7s;
+    }
+    .manifesto-block:first-child { border-top: 1px solid var(--border); }
+    .manifesto-block.visible { opacity: 1; transform: translateX(0); }
+    .manifesto-block p {
+      font-family: var(--ff-display); font-size: clamp(1rem, 1.5vw, 1.2rem);
+      font-weight: 300; line-height: 1.85; color: rgba(245,242,236,0.72);
+    }
+    .manifesto-block p strong {
+      font-weight: 400; color: var(--paper);
+    }
+
+    /* ─── ARCHITECTURE ──────────────────────────────── */
+    #architecture { background: rgba(201,168,76,0.02); }
+    .arch-grid {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 0; margin-top: 4rem;
+      border: 1px solid var(--border);
+    }
+    .arch-card {
+      padding: 3rem 2.5rem; border-right: 1px solid var(--border);
+      position: relative; overflow: hidden;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s, transform 0.7s, background 0.4s;
+    }
+    .arch-card:last-child { border-right: none; }
+    .arch-card.visible { opacity: 1; transform: translateY(0); }
+    .arch-card::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(201,168,76,0.06) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.4s;
+    }
+    .arch-card:hover::after { opacity: 1; }
+
+    .arch-index {
+      font-family: var(--ff-mono); font-size: 0.65rem;
+      letter-spacing: 0.15em; color: var(--gold);
+      margin-bottom: 1.5rem; display: block;
+    }
+    .arch-card h3 {
+      font-family: var(--ff-ui); font-size: 1.05rem;
+      font-weight: 600; color: var(--paper); margin-bottom: 1rem;
+      letter-spacing: 0.02em;
+    }
+    .arch-card p {
+      font-family: var(--ff-display); font-size: 1rem;
+      font-weight: 300; line-height: 1.75; color: rgba(245,242,236,0.55);
+    }
+
+    /* ─── PRINCIPLES ────────────────────────────────── */
+    .principles-layout {
+      display: grid; grid-template-columns: 320px 1fr;
+      gap: 6rem; margin-top: 4rem; align-items: start;
+    }
+    .principles-left { position: sticky; top: 8rem; }
+    .principles-left p {
+      font-family: var(--ff-display); font-size: 1rem;
+      font-weight: 300; line-height: 1.8; color: rgba(245,242,236,0.5);
+      margin-top: 1.5rem;
+    }
+    .principles-right { display: flex; flex-direction: column; }
+    .principle-row {
+      display: grid; grid-template-columns: 56px 1fr;
+      gap: 2rem; padding: 2.5rem 0; border-bottom: 1px solid var(--border);
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+    .principle-row.visible { opacity: 1; transform: translateY(0); }
+    .principle-num {
+      font-family: var(--ff-mono); font-size: 0.65rem;
+      color: var(--gold); letter-spacing: 0.08em; padding-top: 0.3rem;
+    }
+    .principle-content h3 {
+      font-family: var(--ff-ui); font-size: 1rem;
+      font-weight: 600; color: var(--paper);
+      margin-bottom: 0.6rem; letter-spacing: 0.02em;
+    }
+    .principle-content p {
+      font-family: var(--ff-display); font-size: 1rem;
+      font-weight: 300; line-height: 1.75; color: rgba(245,242,236,0.55);
+    }
+
+    /* ─── TECH STACK ────────────────────────────────── */
+    #tech { background: rgba(201,168,76,0.02); }
+    .tech-grid {
+      display: grid; grid-template-columns: repeat(2,1fr);
+      gap: 0; margin-top: 4rem; border: 1px solid var(--border);
+    }
+    .tech-item {
+      padding: 3rem 2.5rem; border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.6s, transform 0.6s;
+      position: relative; overflow: hidden;
+    }
+    .tech-item:nth-child(2n) { border-right: none; }
+    .tech-item:nth-last-child(-n+2) { border-bottom: none; }
+    .tech-item.visible { opacity: 1; transform: translateY(0); }
+    .tech-item::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 100%;
+      height: 2px; background: var(--gold);
+      transition: right 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+    .tech-item:hover::before { right: 0; }
+    .tech-tag {
+      font-family: var(--ff-mono); font-size: 0.65rem;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 1rem; display: block;
+    }
+    .tech-item h3 {
+      font-family: var(--ff-display); font-size: 1.6rem;
+      font-weight: 300; color: var(--paper); margin-bottom: 0.75rem;
+    }
+    .tech-item p {
+      font-family: var(--ff-display); font-size: 0.95rem;
+      font-weight: 300; line-height: 1.75; color: rgba(245,242,236,0.55);
+    }
+
+    /* ─── CTA STRIP ─────────────────────────────────── */
+    .cta-strip {
+      margin: 0 3rem 7rem; border: 1px solid var(--border);
+      padding: 4rem; display: flex;
+      justify-content: space-between; align-items: center;
+      gap: 2rem; flex-wrap: wrap;
+      position: relative; overflow: hidden;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.8s, transform 0.8s;
+    }
+    .cta-strip.visible { opacity: 1; transform: translateY(0); }
+    .cta-strip::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(105deg, rgba(201,168,76,0.05) 0%, transparent 60%);
+    }
+    .cta-left { position: relative; }
+    .cta-left h2 {
+      font-family: var(--ff-display); font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 300; color: var(--paper); line-height: 1.1;
+    }
+    .cta-left h2 em { font-style: italic; color: var(--gold); }
+    .cta-left p {
+      font-family: var(--ff-display); font-size: 1rem;
+      font-weight: 300; color: rgba(245,242,236,0.5);
+      margin-top: 0.75rem; max-width: 38ch; line-height: 1.7;
+    }
+    .cta-right { position: relative; flex-shrink: 0; }
+    .btn-primary {
+      font-family: var(--ff-ui); font-size: 0.8rem;
+      font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 1rem 2.5rem; border: none;
+      background: var(--gold); color: var(--ink);
+      cursor: none; position: relative; overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+      display: inline-block; text-decoration: none;
+    }
+    .btn-primary::before {
+      content: ''; position: absolute; inset: 0;
+      background: var(--gold-light); transform: translateX(-101%);
+      transition: transform 0.45s cubic-bezier(0.16,1,0.3,1);
+    }
+    .btn-primary:hover::before { transform: translateX(0); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,168,76,0.3); }
+    .btn-primary span { position: relative; z-index: 1; }
+
+    /* ─── FOOTER ────────────────────────────────────── */
+    footer {
+      padding: 4rem 3rem; border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-logo {
+      font-family: var(--ff-display); font-size: 2rem;
+      font-weight: 300; font-style: italic; color: var(--gold);
+    }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a {
+      font-family: var(--ff-mono); font-size: 0.68rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none; transition: color 0.3s;
+    }
+    .footer-links a:hover { color: var(--gold); }
+    .footer-copy { font-family: var(--ff-mono); font-size: 0.65rem; color: var(--muted); }
+
+    /* ─── SCROLL REVEAL ─────────────────────────────── */
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal.d1 { transition-delay: 0.1s; }
+    .reveal.d2 { transition-delay: 0.2s; }
+    .reveal.d3 { transition-delay: 0.3s; }
+
+    /* ─── RESPONSIVE ────────────────────────────────── */
+    @media (max-width: 900px) {
+      nav { padding: 1.25rem 1.5rem; }
+      .hero, section { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .manifesto-layout { grid-template-columns: 1fr; }
+      .manifesto-left { position: relative; top: 0; }
+      .manifesto-number { font-size: 4rem; }
+      .arch-grid { grid-template-columns: 1fr; }
+      .arch-card { border-right: none; border-bottom: 1px solid var(--border); }
+      .arch-card:last-child { border-bottom: none; }
+      .principles-layout { grid-template-columns: 1fr; }
+      .principles-left { position: relative; top: 0; }
+      .tech-grid { grid-template-columns: 1fr; }
+      .tech-item { border-right: none !important; border-bottom: 1px solid var(--border) !important; }
+      .tech-item:last-child { border-bottom: none !important; }
+      .cta-strip { margin: 0 1.5rem 5rem; padding: 2.5rem; }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
 <body>
 
-  <div class="mesh-bg"></div>
-  <div class="noise-overlay"></div>
-  <div id="glow-orb"></div>
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring"></div>
+  <canvas id="bg-canvas"></canvas>
 
-  <div class="content-wrapper">
+  <div class="page">
+
+    <!-- NAV -->
     <nav>
-      <a href="index.html">Home</a>
-      <a href="about.html" class="active">Journeys</a>
-      <a href="contact.html">Contact</a>
+      <a href="index.html" class="nav-logo">TripSync Hub</a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="about.html" class="active">Journeys</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
     </nav>
 
-    <main>
-      <section class="hero rvl" style="min-height: 55vh;">
-        <h1 style="font-size: clamp(3rem, 8vw, 9rem);">The Journey Blueprint</h1>
-      </section>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-breadcrumb">
+        <a href="index.html">Home</a>
+        <span class="sep">/</span>
+        <span>Journeys</span>
+      </div>
+      <h1 class="hero-title">The Journey<br><em>Blueprint</em></h1>
+      <p class="hero-desc">
+        TripSync Hub is a speculative interface that treats trains, buses, and food
+        as one connected journey — not three separate chores.
+      </p>
+      <div class="hero-line"></div>
+    </section>
 
-      <section style="padding-top: 0">
-        <div class="rvl d-1">
-          <p class="blueprint-text">
-            TripSync Hub is a speculative interface that treats trains, buses, and food as one connected journey —
-            not three separate chores.
-          </p>
-          <div class="blueprint-container rvl d-2">
-            <p class="blueprint-sub">
-              Traditional booking flows ask travelers to think like systems: pick a train here, a bus there, and find
-              food somewhere in the middle. This concept flips the lens. We design for how people actually move:
-              origin to destination, with every leg and every bite stitched into one calm timeline.
+    <!-- MARQUEE -->
+    <div class="marquee-band">
+      <div class="marquee-track">
+        <span class="marquee-item">Interface Architecture</span>
+        <span class="marquee-item">Motion as Guidance</span>
+        <span class="marquee-item">Calm Under Load</span>
+        <span class="marquee-item">Design Philosophy</span>
+        <span class="marquee-item">Information Lanes</span>
+        <span class="marquee-item">Zero Frameworks</span>
+        <span class="marquee-item">Spatial Hierarchy</span>
+        <span class="marquee-item">Journey Continuity</span>
+        <span class="marquee-item">Interface Architecture</span>
+        <span class="marquee-item">Motion as Guidance</span>
+        <span class="marquee-item">Calm Under Load</span>
+        <span class="marquee-item">Design Philosophy</span>
+        <span class="marquee-item">Information Lanes</span>
+        <span class="marquee-item">Zero Frameworks</span>
+        <span class="marquee-item">Spatial Hierarchy</span>
+        <span class="marquee-item">Journey Continuity</span>
+      </div>
+    </div>
+
+    <!-- MANIFESTO -->
+    <section id="manifesto">
+      <div class="section-eyebrow reveal">The Vision</div>
+      <div class="manifesto-layout">
+        <div class="manifesto-left">
+          <div class="manifesto-number reveal">01</div>
+          <h2 class="section-title reveal d1">Why we <em>built</em> this</h2>
+        </div>
+        <div class="manifesto-right">
+          <div class="manifesto-block">
+            <p>
+              <strong>Traditional booking flows ask travelers to think like systems.</strong>
+              Pick a train here, a bus there, find food somewhere in the middle.
+              Three tabs. Three payment screens. Three moments of friction inside an already stressful journey.
             </p>
           </div>
-          <div class="blueprint-container rvl d-3">
-            <p class="blueprint-sub">
-              The interface is intentionally built with static tools — HTML, CSS, and slim JavaScript —
-              so the weight stays on composition: typography, motion logic, glassmorphism, and spatial hierarchy.
-              The neon glows and 3D cards here are not decoration; they are structure, guiding eyes through decisions
+          <div class="manifesto-block">
+            <p>
+              This concept flips the lens entirely. <strong>We design for how people actually move:</strong>
+              origin to destination, with every leg and every bite stitched into one calm, linear timeline.
+              One decision surface. One confirmation. One less thing to forget.
+            </p>
+          </div>
+          <div class="manifesto-block">
+            <p>
+              The interface is intentionally built with static tools — HTML, CSS, and minimal JavaScript —
+              so the weight stays on <strong>composition: typography, motion logic, and spatial hierarchy.</strong>
+              The visual details here are not decoration; they are structure, guiding eyes through decisions
               when time and attention are limited.
             </p>
           </div>
-        </div>
-      </section>
-
-      <section id="architecture">
-        <h2 class="rvl">Interface Architecture</h2>
-        <div class="architecture-grid">
-          <div class="arch-card rvl d-1">
-            <h3>Information Lanes</h3>
+          <div class="manifesto-block">
             <p>
-              Core actions — route choice, seat locking, food sync — each live in their own visual lane.
-              This keeps decisions separated but visually connected, like clear tracks in a station yard.
-            </p>
-          </div>
-          <div class="arch-card rvl d-2">
-            <h3>Motion as Guidance</h3>
-            <p>
-              Scroll reveals, 3D tilts, and soft timings are tuned to feel physical.
-              Instead of overwhelming users, motion helps them scan what changed and what to do next.
-            </p>
-          </div>
-          <div class="arch-card rvl d-3">
-            <h3>Calm Under Load</h3>
-            <p>
-              Travel planning is high‑stress. Color, spacing, and copy are deliberately minimal,
-              so even a data‑heavy screen feels breathable, like a quiet control room.
+              Every glow, every staggered reveal, every timed micro-interaction is
+              <strong>earned by purpose.</strong> If it doesn't help a traveler decide faster or feel calmer,
+              it doesn't belong on the screen.
             </p>
           </div>
         </div>
-      </section>
-    </main>
+      </div>
+    </section>
 
+    <!-- ARCHITECTURE -->
+    <section id="architecture">
+      <div class="section-eyebrow reveal">Interface Architecture</div>
+      <h2 class="section-title reveal d1">Layers that <em>think</em> for you</h2>
+      <div class="arch-grid" style="margin-top:4rem;">
+        <div class="arch-card">
+          <span class="arch-index">A · 01</span>
+          <h3>Information Lanes</h3>
+          <p>Core actions — route choice, seat locking, food sync — each live in their own visual lane. Decisions are separated but visually connected, like clear tracks in a station yard.</p>
+        </div>
+        <div class="arch-card">
+          <span class="arch-index">A · 02</span>
+          <h3>Motion as Guidance</h3>
+          <p>Scroll reveals, tilt effects, and soft timings are tuned to feel physical, not digital. Motion helps users scan what changed and what to do next, without demanding attention.</p>
+        </div>
+        <div class="arch-card">
+          <span class="arch-index">A · 03</span>
+          <h3>Calm Under Load</h3>
+          <p>Travel planning is inherently high-stress. Color, spacing, and copy are deliberately minimal so even a data-heavy screen feels breathable — like a quiet control room, not a dashboard.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- DESIGN PRINCIPLES -->
+    <section id="principles">
+      <div class="section-eyebrow reveal">Design Principles</div>
+      <div class="principles-layout">
+        <div class="principles-left">
+          <h2 class="section-title reveal d1">How every <em>detail</em> earns its place</h2>
+          <p class="reveal d2">Six principles govern every decision — from the curve of a button to the delay of a reveal animation.</p>
+        </div>
+        <div class="principles-right">
+          <div class="principle-row">
+            <div class="principle-num">P·01</div>
+            <div class="principle-content">
+              <h3>Journey Continuity</h3>
+              <p>Every element — train, bus, food — is treated as a single narrative thread, not isolated modules. The interface never lets you feel the seams between modes.</p>
+            </div>
+          </div>
+          <div class="principle-row">
+            <div class="principle-num">P·02</div>
+            <div class="principle-content">
+              <h3>Informed Minimalism</h3>
+              <p>Less is shown, but nothing is hidden. Data is surfaced contextually — at the moment it becomes relevant — rather than dumped all at once.</p>
+            </div>
+          </div>
+          <div class="principle-row">
+            <div class="principle-num">P·03</div>
+            <div class="principle-content">
+              <h3>Purposeful Motion</h3>
+              <p>Animations exist to communicate change and direct focus, not to decorate. Each transition has a defined role: reveal, confirm, or redirect.</p>
+            </div>
+          </div>
+          <div class="principle-row">
+            <div class="principle-num">P·04</div>
+            <div class="principle-content">
+              <h3>Typography as Structure</h3>
+              <p>Font scale, weight, and rhythm carry as much information as icons or color. A headline's size tells you its urgency; its style tells you its category.</p>
+            </div>
+          </div>
+          <div class="principle-row">
+            <div class="principle-num">P·05</div>
+            <div class="principle-content">
+              <h3>Stress-Proof Hierarchy</h3>
+              <p>Under time pressure, travelers scan before they read. The layout is designed for scanning first, so the right action is always visible at a glance.</p>
+            </div>
+          </div>
+          <div class="principle-row">
+            <div class="principle-num">P·06</div>
+            <div class="principle-content">
+              <h3>Real-World Readiness</h3>
+              <p>The component structure is built so live API data — trains, buses, kitchens — can drop in without redesigning the experience. Concept today, platform tomorrow.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TECH STACK -->
+    <section id="tech">
+      <div class="section-eyebrow reveal">Tech Stack</div>
+      <h2 class="section-title reveal d1">Built with <em>craft</em>, not complexity</h2>
+      <div class="tech-grid">
+        <div class="tech-item">
+          <span class="tech-tag">Foundation</span>
+          <h3>Semantic HTML</h3>
+          <p>Every element earns its tag. Structure is meaningful before any CSS is applied — accessible, logical, and API-ready from day one.</p>
+        </div>
+        <div class="tech-item">
+          <span class="tech-tag">Visuals</span>
+          <h3>Advanced CSS</h3>
+          <p>Custom properties, grid, clamp(), scroll-linked effects, and layered animations. No preprocessors, no build steps — just the language itself, used well.</p>
+        </div>
+        <div class="tech-item">
+          <span class="tech-tag">Interaction</span>
+          <h3>Vanilla JavaScript</h3>
+          <p>A canvas particle system, cursor physics, intersection observers, and smooth accordions. Under 200 lines of intentional, framework-free logic.</p>
+        </div>
+        <div class="tech-item">
+          <span class="tech-tag">Typography</span>
+          <h3>Cormorant + Syne + DM Mono</h3>
+          <p>An editorial serif for display, a geometric sans for UI labels, and a technical mono for data. Three voices, one coherent system.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA STRIP -->
+    <div class="cta-strip reveal">
+      <div class="cta-left">
+        <h2>Ready to plan a<br><em>real journey?</em></h2>
+        <p>Explore the concept interface — every route, every food sync, all from one surface.</p>
+      </div>
+      <div class="cta-right">
+        <a href="index.html" class="btn-primary"><span>Go to Home</span></a>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
     <footer>
-      <p>© 2026 TripSync Hub. Concept travel & food experience by the team.</p>
+      <div class="footer-logo">TripSync Hub</div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="about.html">Journeys</a>
+        <a href="contact.html">Contact</a>
+      </div>
+      <div class="footer-copy">© 2026 TripSync Hub — Concept interface</div>
     </footer>
   </div>
 
   <script>
-    const orb = document.getElementById("glow-orb");
-    document.body.onpointermove = event => {
-      const { clientX, clientY } = event;
-      orb.animate({ left: `${clientX}px`, top: `${clientY}px` }, { duration: 4000, fill: "forwards" });
-    };
+    /* ── CURSOR ─────────────────────────────────────────── */
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+    let rx = mx, ry = my;
 
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) { entry.target.classList.add('visible'); }
-      });
-    }, { threshold: 0.15 });
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+    });
+    (function animRing() {
+      rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      requestAnimationFrame(animRing);
+    })();
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+    });
 
-    document.querySelectorAll('.rvl').forEach((el) => observer.observe(el));
+    /* ── CANVAS BACKGROUND ──────────────────────────────── */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [];
 
-    setTimeout(() => {
-      document.querySelectorAll('.hero.rvl, .hero .rvl').forEach(el => el.classList.add('visible'));
-    }, 150);
+    function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+
+    class Particle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * W; this.y = Math.random() * H;
+        this.vx = (Math.random() - 0.5) * 0.22; this.vy = (Math.random() - 0.5) * 0.22;
+        this.radius = Math.random() * 1.4 + 0.3;
+        this.alpha = Math.random() * 0.3 + 0.05;
+        this.life = 0; this.maxLife = Math.random() * 400 + 200;
+      }
+      update() {
+        this.x += this.vx; this.y += this.vy; this.life++;
+        if (this.life > this.maxLife || this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+      }
+      draw() {
+        const fade = Math.min(this.life / 60, 1) * Math.min((this.maxLife - this.life) / 60, 1);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(201,168,76,${this.alpha * fade})`;
+        ctx.fill();
+      }
+    }
+    for (let i = 0; i < 110; i++) particles.push(new Particle());
+
+    function drawConnections() {
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 110) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(201,168,76,${0.055 * (1 - dist / 110)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function animCanvas() {
+      ctx.clearRect(0, 0, W, H);
+      const grad = ctx.createRadialGradient(W * 0.3, H * 0.4, 0, W * 0.3, H * 0.4, Math.max(W, H) * 0.65);
+      grad.addColorStop(0, 'rgba(26,107,107,0.04)');
+      grad.addColorStop(0.6, 'rgba(10,10,15,0)');
+      grad.addColorStop(1, 'rgba(196,92,46,0.025)');
+      ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+      particles.forEach(p => { p.update(); p.draw(); });
+      drawConnections();
+      requestAnimationFrame(animCanvas);
+    }
+    animCanvas();
+
+    /* ── SCROLL REVEAL ──────────────────────────────────── */
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal, .manifesto-block, .arch-card, .principle-row, .tech-item, .cta-strip').forEach(el => obs.observe(el));
+
+    /* ── STAGGERED DELAYS ───────────────────────────────── */
+    document.querySelectorAll('.arch-card').forEach((c, i) => c.style.transitionDelay = (i * 0.12) + 's');
+    document.querySelectorAll('.tech-item').forEach((c, i) => c.style.transitionDelay = (i * 0.1) + 's');
+    document.querySelectorAll('.principle-row').forEach((r, i) => r.style.transitionDelay = (i * 0.08) + 's');
+    document.querySelectorAll('.manifesto-block').forEach((b, i) => b.style.transitionDelay = (i * 0.12) + 's');
   </script>
 </body>
-
 </html>
