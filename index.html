@@ -1,350 +1,993 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TripSync Hub – Cinematic Travel & Food</title>
-  <link rel="stylesheet" href="style.css">
-</head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TripSync Hub — Journey Reimagined</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+    :root {
+      --ink: #0a0a0f;
+      --paper: #f5f2ec;
+      --warm: #f0ebe0;
+      --gold: #c9a84c;
+      --gold-light: #e8cc7a;
+      --rust: #c45c2e;
+      --teal: #1a6b6b;
+      --cream: #faf7f0;
+      --muted: #8a8070;
+      --border: rgba(201,168,76,0.18);
+      --ff-display: 'Cormorant Garamond', serif;
+      --ff-ui: 'Syne', sans-serif;
+      --ff-mono: 'DM Mono', monospace;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--ink);
+      color: var(--paper);
+      font-family: var(--ff-display);
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* ─── CUSTOM CURSOR ─────────────────────────────── */
+    #cursor-dot {
+      width: 8px; height: 8px;
+      background: var(--gold);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s, width 0.3s, height 0.3s, background 0.3s;
+    }
+    #cursor-ring {
+      width: 36px; height: 36px;
+      border: 1px solid rgba(201,168,76,0.5);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: transform 0.4s cubic-bezier(0.16,1,0.3,1), width 0.4s, height 0.4s, opacity 0.3s;
+    }
+    body.cursor-hover #cursor-dot { transform: translate(-50%,-50%) scale(2.5); background: var(--rust); }
+    body.cursor-hover #cursor-ring { width: 60px; height: 60px; opacity: 0.4; }
+
+    /* ─── CANVAS BACKGROUND ─────────────────────────── */
+    #bg-canvas {
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ─── NAV ───────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.5rem 3rem;
+      background: linear-gradient(to bottom, rgba(10,10,15,0.9) 0%, transparent 100%);
+      backdrop-filter: blur(2px);
+    }
+    .nav-logo {
+      font-family: var(--ff-ui);
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      font-family: var(--ff-mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(245,242,236,0.55);
+      text-decoration: none;
+      transition: color 0.3s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute; bottom: -4px; left: 0; right: 100%;
+      height: 1px; background: var(--gold);
+      transition: right 0.35s cubic-bezier(0.16,1,0.3,1);
+    }
+    .nav-links a:hover, .nav-links a.active { color: var(--gold); }
+    .nav-links a:hover::after, .nav-links a.active::after { right: 0; }
+
+    /* ─── WRAPPER ───────────────────────────────────── */
+    .page { position: relative; z-index: 1; }
+
+    /* ─── HERO ──────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: 1fr auto;
+      padding: 0 3rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-body {
+      display: flex; flex-direction: column; justify-content: center;
+      padding-top: 8rem;
+      max-width: 900px;
+    }
+    .hero-eyebrow {
+      font-family: var(--ff-mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold);
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 2rem;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp 0.8s 0.3s forwards;
+    }
+    .pulse-dot {
+      width: 6px; height: 6px;
+      background: var(--gold); border-radius: 50%;
+      position: relative;
+    }
+    .pulse-dot::after {
+      content: '';
+      position: absolute; inset: -4px;
+      border-radius: 50%;
+      border: 1px solid var(--gold);
+      animation: pulseRing 2s infinite;
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(1); opacity: 0.8; }
+      100% { transform: scale(2.5); opacity: 0; }
+    }
+
+    h1.hero-title {
+      font-family: var(--ff-display);
+      font-size: clamp(5rem, 13vw, 14rem);
+      font-weight: 300;
+      line-height: 0.88;
+      letter-spacing: -0.02em;
+      color: var(--paper);
+      opacity: 0; transform: translateY(40px);
+      animation: fadeUp 1s 0.5s forwards;
+    }
+    h1.hero-title em {
+      font-style: italic;
+      color: var(--gold);
+      font-weight: 300;
+    }
+    .hero-sub {
+      font-family: var(--ff-display);
+      font-size: clamp(1rem, 1.5vw, 1.25rem);
+      font-weight: 300;
+      color: rgba(245,242,236,0.55);
+      max-width: 560px;
+      line-height: 1.7;
+      margin-top: 2.5rem;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp 0.8s 0.9s forwards;
+    }
+    .hero-cta {
+      display: flex; gap: 1.25rem; margin-top: 3rem;
+      opacity: 0; transform: translateY(20px);
+      animation: fadeUp 0.8s 1.1s forwards;
+    }
+    .btn-primary {
+      font-family: var(--ff-ui); font-size: 0.8rem;
+      font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 1rem 2.5rem; border: none;
+      background: var(--gold); color: var(--ink);
+      cursor: none; position: relative; overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .btn-primary::before {
+      content: ''; position: absolute; inset: 0;
+      background: var(--gold-light); transform: translateX(-101%);
+      transition: transform 0.45s cubic-bezier(0.16,1,0.3,1);
+    }
+    .btn-primary:hover::before { transform: translateX(0); }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,168,76,0.3); }
+    .btn-primary span { position: relative; z-index: 1; }
+
+    .btn-ghost {
+      font-family: var(--ff-ui); font-size: 0.8rem;
+      font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 1rem 2.5rem; background: transparent;
+      border: 1px solid rgba(201,168,76,0.4); color: var(--gold);
+      cursor: none; transition: border-color 0.3s, color 0.3s, transform 0.3s;
+    }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--paper); transform: translateY(-2px); }
+
+    /* Hero metrics bar */
+    .hero-metrics {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--border);
+      opacity: 0; animation: fadeUp 0.8s 1.3s forwards;
+    }
+    .metric-item {
+      padding: 1.75rem 0; position: relative;
+    }
+    .metric-item + .metric-item { border-left: 1px solid var(--border); padding-left: 2rem; }
+    .metric-label {
+      font-family: var(--ff-mono); font-size: 0.65rem;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.4rem;
+    }
+    .metric-value {
+      font-family: var(--ff-display); font-size: 2.4rem;
+      font-weight: 300; color: var(--paper); line-height: 1;
+    }
+    .metric-value span { font-size: 1rem; font-weight: 300; color: var(--gold); }
+    .metric-sub { font-family: var(--ff-mono); font-size: 0.65rem; color: var(--muted); margin-top: 0.3rem; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── MARQUEE ───────────────────────────────────── */
+    .marquee-band {
+      overflow: hidden; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+      padding: 1.1rem 0; background: rgba(201,168,76,0.04);
+    }
+    .marquee-track {
+      display: flex; gap: 3rem;
+      animation: marquee 22s linear infinite;
+      width: max-content;
+    }
+    .marquee-item {
+      font-family: var(--ff-mono); font-size: 0.7rem;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--muted); white-space: nowrap;
+      display: flex; align-items: center; gap: 1.5rem;
+    }
+    .marquee-item::after { content: '◆'; color: var(--gold); font-size: 0.5rem; }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to { transform: translateX(-50%); }
+    }
+
+    /* ─── SECTIONS ──────────────────────────────────── */
+    section { padding: 7rem 3rem; }
+
+    .section-eyebrow {
+      font-family: var(--ff-mono); font-size: 0.68rem;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .section-eyebrow::before { content: ''; flex: 0 0 40px; height: 1px; background: var(--gold); }
+
+    h2.section-title {
+      font-family: var(--ff-display); font-size: clamp(2.8rem, 5vw, 5.5rem);
+      font-weight: 300; line-height: 1.05; letter-spacing: -0.01em;
+      color: var(--paper); max-width: 14ch;
+    }
+    h2.section-title em { font-style: italic; color: var(--gold); }
+
+    /* ─── HOW IT WORKS ──────────────────────────────── */
+    .how-layout {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 5rem; align-items: start; margin-top: 5rem;
+    }
+    .how-left { position: sticky; top: 8rem; }
+    .how-right { display: flex; flex-direction: column; gap: 0; }
+
+    .step-row {
+      display: grid; grid-template-columns: 60px 1fr;
+      gap: 2rem; padding: 2.5rem 0;
+      border-bottom: 1px solid var(--border);
+      opacity: 0; transform: translateX(30px);
+      transition: opacity 0.7s, transform 0.7s;
+    }
+    .step-row.visible { opacity: 1; transform: translateX(0); }
+    .step-number {
+      font-family: var(--ff-mono); font-size: 0.7rem;
+      color: var(--gold); padding-top: 0.25rem;
+      letter-spacing: 0.05em;
+    }
+    .step-content h3 {
+      font-family: var(--ff-ui); font-size: 1.1rem;
+      font-weight: 600; color: var(--paper); margin-bottom: 0.75rem;
+      letter-spacing: 0.02em;
+    }
+    .step-content p {
+      font-family: var(--ff-display); font-size: 1.05rem;
+      font-weight: 300; line-height: 1.75; color: rgba(245,242,236,0.6);
+    }
+
+    /* ─── ROUTES ────────────────────────────────────── */
+    #routes { background: rgba(201,168,76,0.025); }
+    .routes-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4rem; }
+    .routes-count {
+      font-family: var(--ff-mono); font-size: 0.7rem;
+      color: var(--muted); letter-spacing: 0.1em;
+      align-self: flex-end; padding-bottom: 0.5rem;
+    }
+
+    .route-list { display: flex; flex-direction: column; gap: 0; }
+    .route-entry {
+      display: grid; grid-template-columns: 120px 1fr auto;
+      align-items: center; gap: 3rem;
+      padding: 2.5rem 0; border-top: 1px solid var(--border);
+      cursor: none; position: relative; overflow: hidden;
+      transition: background 0.4s;
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.6s, transform 0.6s, background 0.3s;
+    }
+    .route-entry:last-child { border-bottom: 1px solid var(--border); }
+    .route-entry.visible { opacity: 1; transform: translateY(0); }
+    .route-entry::before {
+      content: ''; position: absolute; left: -100%; top: 0; bottom: 0;
+      width: 100%; background: rgba(201,168,76,0.04);
+      transition: left 0.5s cubic-bezier(0.16,1,0.3,1);
+    }
+    .route-entry:hover::before { left: 0; }
+
+    .route-badge {
+      font-family: var(--ff-mono); font-size: 0.65rem;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.35rem 0.9rem; border: 1px solid currentColor;
+      display: inline-block; width: fit-content;
+    }
+    .badge-mixed { color: var(--gold); }
+    .badge-rail { color: var(--teal); }
+    .badge-bus { color: var(--rust); }
+
+    .route-main h3 {
+      font-family: var(--ff-display); font-size: clamp(1.5rem, 2.5vw, 2.2rem);
+      font-weight: 300; color: var(--paper); margin-bottom: 0.5rem;
+    }
+    .route-main p {
+      font-family: var(--ff-display); font-size: 0.95rem;
+      font-weight: 300; color: rgba(245,242,236,0.5); line-height: 1.6;
+    }
+    .route-stats {
+      text-align: right; display: flex; flex-direction: column; gap: 0.4rem;
+    }
+    .route-duration {
+      font-family: var(--ff-display); font-size: 2rem;
+      font-weight: 300; color: var(--paper);
+    }
+    .route-tags {
+      display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.4rem; margin-top: 0.4rem;
+    }
+    .route-tag {
+      font-family: var(--ff-mono); font-size: 0.6rem;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.2rem 0.5rem; background: rgba(245,242,236,0.06);
+      color: var(--muted); border-radius: 2px;
+    }
+    .route-arrow {
+      font-size: 1.5rem; color: var(--gold);
+      opacity: 0; transform: translateX(-8px);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .route-entry:hover .route-arrow { opacity: 1; transform: translateX(0); }
+
+    /* ─── PLANS ─────────────────────────────────────── */
+    .plans-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 0; margin-top: 4rem;
+      border: 1px solid var(--border);
+    }
+    .plan-card {
+      padding: 3rem 2.5rem; border-right: 1px solid var(--border);
+      position: relative; overflow: hidden;
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.7s, transform 0.7s, background 0.4s;
+    }
+    .plan-card:last-child { border-right: none; }
+    .plan-card.visible { opacity: 1; transform: translateY(0); }
+    .plan-card::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(201,168,76,0.06) 0%, transparent 60%);
+      opacity: 0; transition: opacity 0.4s;
+    }
+    .plan-card:hover::after { opacity: 1; }
+    .plan-card.featured { background: rgba(201,168,76,0.05); }
+
+    .plan-tag {
+      font-family: var(--ff-mono); font-size: 0.65rem;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 1.5rem;
+      display: block;
+    }
+    .plan-title {
+      font-family: var(--ff-display); font-size: 1.8rem;
+      font-weight: 300; color: var(--paper); line-height: 1.15;
+      margin-bottom: 1rem;
+    }
+    .plan-desc {
+      font-family: var(--ff-display); font-size: 0.95rem;
+      font-weight: 300; color: rgba(245,242,236,0.55); line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+    .plan-features { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+    .plan-features li {
+      font-family: var(--ff-mono); font-size: 0.7rem;
+      letter-spacing: 0.05em; color: rgba(245,242,236,0.6);
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .plan-features li::before { content: '→'; color: var(--gold); }
+
+    /* ─── TESTIMONIALS ──────────────────────────────── */
+    #stories { background: rgba(10,10,15,0.7); }
+    .stories-layout {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0; margin-top: 4rem;
+      border: 1px solid var(--border);
+    }
+    .story-item {
+      padding: 3.5rem; border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      opacity: 0; transform: translateY(20px);
+      transition: opacity 0.7s, transform 0.7s;
+    }
+    .story-item:nth-child(2n) { border-right: none; }
+    .story-item:nth-last-child(-n+2) { border-bottom: none; }
+    .story-item.visible { opacity: 1; transform: translateY(0); }
+    .story-item.wide { grid-column: span 2; }
+
+    .story-avatar-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem; }
+    .avatar-circle {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(201,168,76,0.12); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--ff-ui); font-size: 0.7rem; font-weight: 700;
+      color: var(--gold); letter-spacing: 0.05em;
+    }
+    .avatar-info .name { font-family: var(--ff-ui); font-size: 0.8rem; font-weight: 600; color: var(--paper); }
+    .avatar-info .role { font-family: var(--ff-mono); font-size: 0.62rem; letter-spacing: 0.08em; color: var(--muted); }
+
+    .story-quote {
+      font-family: var(--ff-display); font-size: clamp(1rem, 1.5vw, 1.2rem);
+      font-style: italic; font-weight: 300;
+      color: rgba(245,242,236,0.8); line-height: 1.75;
+    }
+    .story-quote::before { content: '"'; color: var(--gold); font-size: 2rem; line-height: 0; vertical-align: -0.4em; margin-right: 0.1em; }
+
+    /* ─── FAQ ───────────────────────────────────────── */
+    .faq-list { margin-top: 4rem; }
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+      opacity: 0; transform: translateY(15px);
+      transition: opacity 0.6s, transform 0.6s;
+    }
+    .faq-item.visible { opacity: 1; transform: translateY(0); }
+    .faq-trigger {
+      width: 100%; display: flex; justify-content: space-between; align-items: center;
+      padding: 2rem 0; background: none; border: none; cursor: none;
+      text-align: left; gap: 2rem;
+    }
+    .faq-trigger h3 {
+      font-family: var(--ff-display); font-size: clamp(1.1rem, 1.8vw, 1.5rem);
+      font-weight: 300; color: var(--paper); transition: color 0.3s;
+    }
+    .faq-trigger:hover h3 { color: var(--gold); }
+    .faq-icon-wrap {
+      flex-shrink: 0; width: 36px; height: 36px;
+      border: 1px solid var(--border); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 1.1rem;
+      transition: transform 0.4s, border-color 0.3s, background 0.3s;
+    }
+    .faq-item.open .faq-icon-wrap {
+      transform: rotate(45deg); border-color: var(--gold);
+      background: rgba(201,168,76,0.1);
+    }
+    .faq-body {
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.5s cubic-bezier(0.16,1,0.3,1), padding 0.4s;
+    }
+    .faq-item.open .faq-body { max-height: 300px; padding-bottom: 2rem; }
+    .faq-body p {
+      font-family: var(--ff-display); font-size: 1rem;
+      font-weight: 300; color: rgba(245,242,236,0.6); line-height: 1.8;
+      max-width: 70ch;
+    }
+
+    /* ─── FOOTER ────────────────────────────────────── */
+    footer {
+      padding: 4rem 3rem; border-top: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .footer-logo {
+      font-family: var(--ff-display); font-size: 2rem;
+      font-weight: 300; font-style: italic; color: var(--gold);
+    }
+    .footer-links { display: flex; gap: 2rem; }
+    .footer-links a {
+      font-family: var(--ff-mono); font-size: 0.68rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); text-decoration: none; transition: color 0.3s;
+    }
+    .footer-links a:hover { color: var(--gold); }
+    .footer-copy { font-family: var(--ff-mono); font-size: 0.65rem; color: var(--muted); }
+
+    /* ─── SCROLL REVEAL ─────────────────────────────── */
+    .reveal {
+      opacity: 0; transform: translateY(30px);
+      transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal.d1 { transition-delay: 0.1s; }
+    .reveal.d2 { transition-delay: 0.2s; }
+    .reveal.d3 { transition-delay: 0.3s; }
+
+    /* ─── RESPONSIVE ────────────────────────────────── */
+    @media (max-width: 900px) {
+      nav { padding: 1.25rem 1.5rem; }
+      .hero, section { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .how-layout { grid-template-columns: 1fr; }
+      .how-left { position: relative; top: 0; }
+      .route-entry { grid-template-columns: 1fr; gap: 1rem; }
+      .route-stats { text-align: left; }
+      .plans-grid { grid-template-columns: 1fr; }
+      .plan-card { border-right: none; border-bottom: 1px solid var(--border); }
+      .stories-layout { grid-template-columns: 1fr; }
+      .story-item { border-right: none !important; }
+      .story-item.wide { grid-column: span 1; }
+      footer { flex-direction: column; align-items: flex-start; }
+      .hero-metrics { grid-template-columns: 1fr; }
+      .metric-item + .metric-item { border-left: none; border-top: 1px solid var(--border); padding-left: 0; padding-top: 1.5rem; }
+    }
+  </style>
+</head>
 <body>
 
-  <!-- Background Core -->
-  <div class="mesh-bg"></div>
-  <div class="noise-overlay"></div>
-  <div id="glow-orb"></div>
+  <!-- Custom Cursor -->
+  <div id="cursor-dot"></div>
+  <div id="cursor-ring"></div>
 
-  <!-- Content Layer -->
-  <div class="content-wrapper">
+  <!-- Generative Canvas Background -->
+  <canvas id="bg-canvas"></canvas>
 
+  <div class="page">
+    <!-- NAV -->
     <nav>
-      <a href="index.html" class="active">Home</a>
-      <a href="about.html">Journeys</a>
-      <a href="contact.html">Contact</a>
+      <div class="nav-logo">TripSync Hub</div>
+      <ul class="nav-links">
+        <li><a href="#" class="active">Home</a></li>
+        <li><a href="#how-it-works">Journey</a></li>
+        <li><a href="#routes">Routes</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
     </nav>
 
-    <main>
-      <!-- HERO -->
-      <section class="hero rvl">
-        <div class="hero-main">
-          <div class="tagline-pill rvl">
-            <span class="dot-live"></span>
-            Live concept: Train, Bus & Food in one flow
-          </div>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-body">
+        <div class="hero-eyebrow">
+          <span class="pulse-dot"></span>
+          Live Concept &nbsp;·&nbsp; Train · Bus · Food in one flow
+        </div>
+        <h1 class="hero-title">Trip<em>Sync</em><br>Hub</h1>
+        <p class="hero-sub">
+          A cinematic control surface for real-world journeys. Compare trains and buses,
+          lock your seats, and have food meet you on the route — all from one ultra-calm interface.
+        </p>
+        <div class="hero-cta">
+          <button class="btn-primary"><span>Plan a Journey</span></button>
+          <button class="btn-ghost">Explore Features</button>
+        </div>
+      </div>
+      <div class="hero-metrics">
+        <div class="metric-item">
+          <div class="metric-label">Sample Corridor</div>
+          <div class="metric-value">Chennai <span>→</span> Bengaluru</div>
+          <div class="metric-sub">Train + Bus + Station Food</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Simulated On-Time Rate</div>
+          <div class="metric-value">94.2<span>%</span></div>
+          <div class="metric-sub">Based on ideal routing logic</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Partner Kitchens</div>
+          <div class="metric-value">120<span>+</span></div>
+          <div class="metric-sub">Across 18 major hubs</div>
+        </div>
+      </div>
+    </section>
 
-          <h1 class="rvl">TripSync<br>Hub</h1>
+    <!-- MARQUEE -->
+    <div class="marquee-band">
+      <div class="marquee-track" id="marquee-track">
+        <span class="marquee-item">Train + Bus Unified</span>
+        <span class="marquee-item">Station Food Sync</span>
+        <span class="marquee-item">Seat Lock in One Flow</span>
+        <span class="marquee-item">18 Major Hubs</span>
+        <span class="marquee-item">Pure HTML · CSS · Vanilla JS</span>
+        <span class="marquee-item">Zero Frameworks</span>
+        <span class="marquee-item">Cinematic Interface</span>
+        <span class="marquee-item">120+ Partner Kitchens</span>
+        <span class="marquee-item">Train + Bus Unified</span>
+        <span class="marquee-item">Station Food Sync</span>
+        <span class="marquee-item">Seat Lock in One Flow</span>
+        <span class="marquee-item">18 Major Hubs</span>
+        <span class="marquee-item">Pure HTML · CSS · Vanilla JS</span>
+        <span class="marquee-item">Zero Frameworks</span>
+        <span class="marquee-item">Cinematic Interface</span>
+        <span class="marquee-item">120+ Partner Kitchens</span>
+      </div>
+    </div>
 
-          <p class="rvl d-1">
-            A cinematic control surface for real‑world journeys. Compare trains and buses, lock your seats,
-            and have food meet you on the route — all from one ultra‑calm interface.
+    <!-- HOW IT WORKS -->
+    <section id="how-it-works">
+      <div class="section-eyebrow reveal">The Flow</div>
+      <div class="how-layout">
+        <div class="how-left">
+          <h2 class="section-title reveal d1">How <em>TripSync</em> Flows</h2>
+          <p style="font-family:var(--ff-display);font-size:1rem;font-weight:300;color:rgba(245,242,236,0.5);line-height:1.8;margin-top:1.5rem;max-width:35ch;" class="reveal d2">
+            Three elegantly sequenced steps bring your journey from intent to experience — without the usual fragmentation.
           </p>
-
-          <div class="hero-actions rvl d-2">
-            <button class="magnet-btn">
-              Plan a Journey
-            </button>
-            <button class="ghost-btn">
-              Explore Features
-            </button>
-          </div>
         </div>
-
-        <div class="hero-meta rvl d-2">
-          <div class="hero-meta-item">
-            <span class="meta-label">Sample Corridor</span>
-            <div class="meta-value">Chennai → Bengaluru</div>
-            <span class="meta-sub">Train + Bus + Station Food</span>
-          </div>
-          <div class="hero-meta-item">
-            <span class="meta-label">Simulated On‑Time Rate</span>
-            <div class="meta-value">94.2%</div>
-            <span class="meta-sub">Based on ideal routing logic</span>
-          </div>
-          <div class="hero-meta-item">
-            <span class="meta-label">Partner Kitchens</span>
-            <div class="meta-value">120+</div>
-            <span class="meta-sub">Across 18 major hubs</span>
-          </div>
-        </div>
-      </section>
-
-      <!-- STATUS STRIP -->
-      <section class="status-band rvl d-1">
-        <div class="status-card">
-          <span class="status-label">Concept Scope</span>
-          <p>End‑to‑end journey planning: trains, buses, interchanges, station food.</p>
-        </div>
-        <div class="status-card">
-          <span class="status-label">Tech Stack</span>
-          <p>Pure HTML, CSS and micro JS. No frameworks. No bloat.</p>
-        </div>
-        <div class="status-card">
-          <span class="status-label">Design Intent</span>
-          <p>Make travel decisions feel as soft and composed as a streaming app.</p>
-        </div>
-      </section>
-
-      <!-- HOW IT WORKS -->
-      <section id="how-it-works">
-        <h2 class="rvl">How TripSync Hub Flows</h2>
-        <div class="steps-grid">
-          <div class="step-card rvl d-1">
-            <div class="step-index">01</div>
-            <h3>Set Your Route</h3>
-            <p>
-              Enter where you are and where you need to go once.
-              TripSync maps nearby stations and bus stands, then builds a clean list of options.
-            </p>
-          </div>
-          <div class="step-card rvl d-2">
-            <div class="step-index">02</div>
-            <h3>Blend Train & Bus</h3>
-            <p>
-              Mix trains for the long stretch and buses for the last mile.
-              We treat every leg as part of a single journey, not a separate booking.
-            </p>
-          </div>
-          <div class="step-card rvl d-3">
-            <div class="step-index">03</div>
-            <h3>Sync Food to Time</h3>
-            <p>
-              Pick partner kitchens on your path. Pre‑order so your meals appear at boarding or during a pause,
-              without adding mental load.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <!-- ROUTE SHOWCASE -->
-      <section id="routes">
-        <h2 class="rvl">Sample Journey Lanes</h2>
-        <div class="route-grid">
-          <article class="route-card rvl d-1">
-            <div class="route-header">
-              <span class="route-pill">Mixed Mode</span>
-              <span class="route-time">6h 40m • Ideal</span>
+        <div class="how-right">
+          <div class="step-row">
+            <div class="step-number">01</div>
+            <div class="step-content">
+              <h3>Set Your Route</h3>
+              <p>Enter your origin and destination once. TripSync maps nearby stations and bus stands, then presents a clean, ranked list of options — sorted by what matters to you.</p>
             </div>
+          </div>
+          <div class="step-row">
+            <div class="step-number">02</div>
+            <div class="step-content">
+              <h3>Blend Train & Bus</h3>
+              <p>Mix trains for the long stretch and buses for the last mile. Every leg is treated as part of a single journey — one booking surface, no separate tabs.</p>
+            </div>
+          </div>
+          <div class="step-row">
+            <div class="step-number">03</div>
+            <div class="step-content">
+              <h3>Sync Food to Time</h3>
+              <p>Select partner kitchens along your path. Pre-order so meals appear at boarding or during a pause — timed so precisely it removes a decision, not adds one.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ROUTES -->
+    <section id="routes">
+      <div class="routes-header">
+        <div>
+          <div class="section-eyebrow reveal">Sample Journey Lanes</div>
+          <h2 class="section-title reveal d1">Routes that <em>feel</em> different</h2>
+        </div>
+        <div class="routes-count reveal">03 corridors</div>
+      </div>
+      <div class="route-list">
+        <div class="route-entry">
+          <div><span class="route-badge badge-mixed">Mixed Mode</span></div>
+          <div class="route-main">
             <h3>Chennai → Bengaluru</h3>
-            <p>
-              Express train for the main corridor, app‑reserved bus for last‑mile handoff,
-              and a timed meal pickup at Katpadi station.
-            </p>
-            <div class="route-meta">
-              <span>2 legs</span>
-              <span>1 food sync</span>
-              <span>Seat lock in one flow</span>
+            <p>Express train for the main corridor, app-reserved bus for last-mile handoff, and a timed meal pickup at Katpadi station.</p>
+            <div class="route-tags">
+              <span class="route-tag">2 legs</span>
+              <span class="route-tag">1 food sync</span>
+              <span class="route-tag">Seat lock</span>
             </div>
-          </article>
-
-          <article class="route-card rvl d-2">
-            <div class="route-header">
-              <span class="route-pill pill-alt">Rail‑First</span>
-              <span class="route-time">9h 15m • Overnight</span>
-            </div>
+          </div>
+          <div class="route-stats">
+            <div class="route-duration">6h 40m</div>
+            <div class="metric-sub">Ideal Timing</div>
+            <div class="route-arrow">↗</div>
+          </div>
+        </div>
+        <div class="route-entry">
+          <div><span class="route-badge badge-rail">Rail-First</span></div>
+          <div class="route-main">
             <h3>Madurai → Hyderabad</h3>
-            <p>
-              Sleeper coach overnight, breakfast pre‑ordered at a junction halt.
-              Notifications tuned only to what matters before and during the trip.
-            </p>
-            <div class="route-meta">
-              <span>Sleeper focus</span>
-              <span>Quiet alerts</span>
-              <span>Station kitchen tie‑in</span>
+            <p>Sleeper coach overnight, breakfast pre-ordered at a junction halt. Notifications tuned only to what matters before and during the trip.</p>
+            <div class="route-tags">
+              <span class="route-tag">Sleeper</span>
+              <span class="route-tag">Quiet alerts</span>
+              <span class="route-tag">Station kitchen</span>
             </div>
-          </article>
-
-          <article class="route-card rvl d-3">
-            <div class="route-header">
-              <span class="route-pill pill-soft">Bus‑Optimized</span>
-              <span class="route-time">4h 05m • Same Day</span>
-            </div>
+          </div>
+          <div class="route-stats">
+            <div class="route-duration">9h 15m</div>
+            <div class="metric-sub">Overnight</div>
+            <div class="route-arrow">↗</div>
+          </div>
+        </div>
+        <div class="route-entry">
+          <div><span class="route-badge badge-bus">Bus-Optimized</span></div>
+          <div class="route-main">
             <h3>Coimbatore → Kochi</h3>
-            <p>
-              Premium bus with seat and boarding gate locked.
-              Light dinner scheduled at departure so the ride can stay uninterrupted.
-            </p>
-            <div class="route-meta">
-              <span>Single leg</span>
-              <span>Comfort seating</span>
-              <span>Boarding‑aligned snack</span>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <!-- TICKET / USER TYPES -->
-      <section id="plans">
-        <h2 class="rvl">Designed for Different Travelers</h2>
-        <div class="ticket-grid">
-          <div class="ticket-card rvl d-1">
-            <div class="ticket-tag">Daily Commuter</div>
-            <h3>Routine Made Lighter</h3>
-            <p>
-              Save favorite routes and usual food picks. The system pre‑fills your choices so
-              a full weekday booking feels like a two‑tap ritual.
-            </p>
-            <ul class="ticket-meta">
-              <li>Save corridors & timings</li>
-              <li>Auto‑suggest seat zones</li>
-              <li>Quick‑reorder snacks</li>
-            </ul>
-          </div>
-          <div class="ticket-card ticket-card-main rvl d-2">
-            <div class="ticket-tag">Family Trip</div>
-            <h3>One Panel, Many Seats</h3>
-            <p>
-              Plan for multiple travelers at once — shared PNR, grouped seats,
-              and family‑style food orders that arrive together before departure.
-            </p>
-            <ul class="ticket-meta">
-              <li>Seat clusters for groups</li>
-              <li>Combined payments view</li>
-              <li>Shared journey timeline</li>
-            </ul>
-          </div>
-          <div class="ticket-card rvl d-3">
-            <div class="ticket-tag">Solo Explorer</div>
-            <h3>Focus on the City</h3>
-            <p>
-              The interface minimizes notifications so you can focus on where you’re going,
-              not how you’re getting there.
-            </p>
-            <ul class="ticket-meta">
-              <li>Smart, calm alerts only</li>
-              <li>Fast reschedule panel</li>
-              <li>Saved cafés & kitchens</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      <!-- STORIES / TESTIMONIALS -->
-      <section id="stories">
-        <h2 class="rvl">If This Were Real…</h2>
-        <div class="stories-grid">
-          <article class="story-card rvl d-1">
-            <div class="story-avatar">TN</div>
-            <h3>College to Home, On Rails</h3>
-            <p>
-              “Instead of jumping between three apps and a browser tab, I would just open one panel,
-              see my train + bus + food line‑up and be done in five minutes.”
-            </p>
-            <span class="story-meta">Final‑year student • Southern corridor</span>
-          </article>
-          <article class="story-card rvl d-2">
-            <div class="story-avatar">FP</div>
-            <h3>Family Weekend Run</h3>
-            <p>
-              “Seats together, one payment screen, and dinner ready at the station.
-              The whole experience would finally feel like planning a movie night, not a mission.”
-            </p>
-            <span class="story-meta">Parent • Chennai suburban</span>
-          </article>
-          <article class="story-card rvl d-3">
-            <div class="story-avatar">EX</div>
-            <h3>Designers’ Concept Lab</h3>
-            <p>
-              “TripSync Hub shows how far pure front‑end craft can go:
-              depth, motion, and information hierarchy without a single heavy framework.”
-            </p>
-            <span class="story-meta">UX reviewer • Concept feedback</span>
-          </article>
-        </div>
-      </section>
-
-      <!-- FAQ -->
-      <section id="faq">
-        <h2 class="rvl">Project FAQ</h2>
-        <div class="faq-grid">
-          <div class="faq-item rvl d-1">
-            <button class="faq-question">
-              Is TripSync Hub a real product?
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              This site is a concept interface built for study and portfolio use.
-              It imagines how future travel and food planning could feel inside a single, focused surface.
+            <p>Premium bus with seat and boarding gate locked. Light dinner scheduled at departure so the ride stays uninterrupted from start to finish.</p>
+            <div class="route-tags">
+              <span class="route-tag">Single leg</span>
+              <span class="route-tag">Comfort seating</span>
+              <span class="route-tag">Boarding snack</span>
             </div>
           </div>
-          <div class="faq-item rvl d-2">
-            <button class="faq-question">
-              What technologies power this UI?
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              Everything you see is crafted with semantic HTML, high‑end CSS, and a very small amount of vanilla
-              JavaScript to drive motion, reveals, and interactivity.
-            </div>
-          </div>
-          <div class="faq-item rvl d-3">
-            <button class="faq-question">
-              Can this concept connect to real APIs later?
-              <span class="faq-icon">+</span>
-            </button>
-            <div class="faq-answer">
-              Yes. The layout is structured so that real‑time train, bus, and food data could drop into these cards,
-              status bands, and timelines without redesigning the entire experience.
-            </div>
+          <div class="route-stats">
+            <div class="route-duration">4h 05m</div>
+            <div class="metric-sub">Same Day</div>
+            <div class="route-arrow">↗</div>
           </div>
         </div>
-      </section>
-    </main>
+      </div>
+    </section>
 
+    <!-- PLANS -->
+    <section id="plans">
+      <div class="section-eyebrow reveal">Traveler Types</div>
+      <h2 class="section-title reveal d1">Built for <em>every</em> kind of journey</h2>
+      <div class="plans-grid">
+        <div class="plan-card reveal d1">
+          <span class="plan-tag">Daily Commuter</span>
+          <h3 class="plan-title">Routine<br>Made Lighter</h3>
+          <p class="plan-desc">Save favorite routes and usual food picks. A full weekday booking feels like a two-tap ritual.</p>
+          <ul class="plan-features">
+            <li>Save corridors & timings</li>
+            <li>Auto-suggest seat zones</li>
+            <li>Quick-reorder snacks</li>
+          </ul>
+        </div>
+        <div class="plan-card featured reveal d2">
+          <span class="plan-tag">Family Trip</span>
+          <h3 class="plan-title">One Panel,<br>Many Seats</h3>
+          <p class="plan-desc">Shared PNR, grouped seats, and family-style food orders that arrive together before departure.</p>
+          <ul class="plan-features">
+            <li>Seat clusters for groups</li>
+            <li>Combined payments view</li>
+            <li>Shared journey timeline</li>
+          </ul>
+        </div>
+        <div class="plan-card reveal d3">
+          <span class="plan-tag">Solo Explorer</span>
+          <h3 class="plan-title">Focus on<br>the City</h3>
+          <p class="plan-desc">The interface minimizes noise so you focus on where you're going, not how you're getting there.</p>
+          <ul class="plan-features">
+            <li>Smart, calm alerts only</li>
+            <li>Fast reschedule panel</li>
+            <li>Saved cafés & kitchens</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- STORIES -->
+    <section id="stories">
+      <div class="section-eyebrow reveal">If This Were Real…</div>
+      <h2 class="section-title reveal d1">What travelers<br>would <em>say</em></h2>
+      <div class="stories-layout" style="margin-top:4rem;">
+        <div class="story-item">
+          <div class="story-avatar-row">
+            <div class="avatar-circle">TN</div>
+            <div class="avatar-info">
+              <div class="name">Final-year Student</div>
+              <div class="role">Southern corridor · Rail user</div>
+            </div>
+          </div>
+          <p class="story-quote">Instead of jumping between three apps and a browser tab, I would just open one panel, see my train, bus, and food line-up and be done in five minutes.</p>
+        </div>
+        <div class="story-item">
+          <div class="story-avatar-row">
+            <div class="avatar-circle">FP</div>
+            <div class="avatar-info">
+              <div class="name">Parent, Two Kids</div>
+              <div class="role">Chennai suburban · Family trips</div>
+            </div>
+          </div>
+          <p class="story-quote">Seats together, one payment screen, and dinner ready at the station. The whole experience would finally feel like planning a movie night, not a mission.</p>
+        </div>
+        <div class="story-item wide">
+          <div class="story-avatar-row">
+            <div class="avatar-circle">UX</div>
+            <div class="avatar-info">
+              <div class="name">UX Reviewer</div>
+              <div class="role">Concept feedback · Design lab</div>
+            </div>
+          </div>
+          <p class="story-quote">TripSync Hub demonstrates how far pure front-end craft can go — depth, motion, and information hierarchy without a single heavy framework loading you down.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq">
+      <div class="section-eyebrow reveal">Questions</div>
+      <h2 class="section-title reveal d1">Project <em>FAQ</em></h2>
+      <div class="faq-list">
+        <div class="faq-item reveal">
+          <button class="faq-trigger">
+            <h3>Is TripSync Hub a real product?</h3>
+            <div class="faq-icon-wrap">+</div>
+          </button>
+          <div class="faq-body">
+            <p>This is a concept interface built for study and portfolio use. It imagines how future travel and food planning could feel inside a single, focused surface — with all the calm of a streaming app.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal d1">
+          <button class="faq-trigger">
+            <h3>What technologies power this UI?</h3>
+            <div class="faq-icon-wrap">+</div>
+          </button>
+          <div class="faq-body">
+            <p>Everything you see is crafted with semantic HTML, advanced CSS — including custom properties, grid, animations, and scroll-linked effects — plus a minimal amount of vanilla JavaScript for interaction and the generative canvas background.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal d2">
+          <button class="faq-trigger">
+            <h3>Can this concept connect to real APIs later?</h3>
+            <div class="faq-icon-wrap">+</div>
+          </button>
+          <div class="faq-body">
+            <p>Yes. The layout is structured so that real-time train, bus, and food data could drop into these cards, status bands, and timelines without redesigning the entire experience. The structure anticipates live data from day one.</p>
+          </div>
+        </div>
+        <div class="faq-item reveal d3">
+          <button class="faq-trigger">
+            <h3>Why Southern India as the demo corridor?</h3>
+            <div class="faq-icon-wrap">+</div>
+          </button>
+          <div class="faq-body">
+            <p>Southern India offers a rich, multi-modal transport ecosystem — Indian Railways, state bus networks, and a thriving local food culture — making it ideal as a proving ground for a unified journey interface.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
     <footer>
-      <p>© 2026 TripSync Hub. Concept travel & food experience by the team.</p>
+      <div class="footer-logo">TripSync Hub</div>
+      <div class="footer-links">
+        <a href="#">Home</a>
+        <a href="#how-it-works">Journey</a>
+        <a href="#routes">Routes</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div class="footer-copy">© 2026 TripSync Hub — Concept interface</div>
     </footer>
-
   </div>
 
-  <!-- Advanced Interactive Logic -->
   <script>
-    // Orb Follower
-    const orb = document.getElementById("glow-orb");
-    document.body.onpointermove = event => {
-      const { clientX, clientY } = event;
-      orb.animate({ left: `${clientX}px`, top: `${clientY}px` }, { duration: 4000, fill: "forwards" });
-    };
+    /* ── CURSOR ────────────────────────────────────────── */
+    const dot = document.getElementById('cursor-dot');
+    const ring = document.getElementById('cursor-ring');
+    let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+    let rx = mx, ry = my;
 
-    // Staggered Intersection Observer (Reveal Engine)
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      dot.style.left = mx + 'px';
+      dot.style.top = my + 'px';
+    });
+
+    (function animateRing() {
+      rx += (mx - rx) * 0.12;
+      ry += (my - ry) * 0.12;
+      ring.style.left = rx + 'px';
+      ring.style.top = ry + 'px';
+      requestAnimationFrame(animateRing);
+    })();
+
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+    });
+
+    /* ── CANVAS BACKGROUND ─────────────────────────────── */
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [];
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    class Particle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * W;
+        this.y = Math.random() * H;
+        this.vx = (Math.random() - 0.5) * 0.25;
+        this.vy = (Math.random() - 0.5) * 0.25;
+        this.radius = Math.random() * 1.5 + 0.4;
+        this.alpha = Math.random() * 0.35 + 0.05;
+        this.life = 0;
+        this.maxLife = Math.random() * 400 + 200;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life++;
+        if (this.life > this.maxLife || this.x < 0 || this.x > W || this.y < 0 || this.y > H) this.reset();
+      }
+      draw() {
+        const fade = Math.min(this.life / 60, 1) * Math.min((this.maxLife - this.life) / 60, 1);
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(201,168,76,${this.alpha * fade})`;
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < 120; i++) particles.push(new Particle());
+
+    // Connection lines
+    function drawConnections() {
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(201,168,76,${0.06 * (1 - dist / 120)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
         }
-      });
-    }, { threshold: 0.15 });
-    document.querySelectorAll('.rvl').forEach((el) => observer.observe(el));
-    setTimeout(() => {
-      document.querySelectorAll('.hero.rvl, .hero .rvl').forEach(el => el.classList.add('visible'));
-    }, 150);
+      }
+    }
 
-    // 3D Tilt Effect on Premium Cards
-    const cards = document.querySelectorAll('.premium-card');
-    cards.forEach(card => {
-      card.addEventListener('mousemove', e => {
-        const rect = card.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
-        const rotateX = ((y - centerY) / centerY) * -10;
-        const rotateY = ((x - centerX) / centerX) * 10;
-        card.style.transform = `perspective(1200px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
-      });
-      card.addEventListener('mouseleave', () => {
-        card.style.transform = `perspective(1200px) rotateX(0deg) rotateY(0deg) scale(1)`;
+    function animateCanvas() {
+      ctx.clearRect(0, 0, W, H);
+      // Subtle radial gradient vignette
+      const grad = ctx.createRadialGradient(W / 2, H / 2, 0, W / 2, H / 2, Math.max(W, H) * 0.7);
+      grad.addColorStop(0, 'rgba(26,107,107,0.04)');
+      grad.addColorStop(0.5, 'rgba(10,10,15,0)');
+      grad.addColorStop(1, 'rgba(196,92,46,0.03)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, W, H);
+      particles.forEach(p => { p.update(); p.draw(); });
+      drawConnections();
+      requestAnimationFrame(animateCanvas);
+    }
+    animateCanvas();
+
+    /* ── SCROLL REVEAL ─────────────────────────────────── */
+    const revealObs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal, .step-row, .route-entry, .plan-card, .story-item, .faq-item').forEach(el => revealObs.observe(el));
+
+    /* ── FAQ ───────────────────────────────────────────── */
+    document.querySelectorAll('.faq-trigger').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.faq-item');
+        const isOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+        if (!isOpen) item.classList.add('open');
       });
     });
 
-    // FAQ toggle
-    document.querySelectorAll('.faq-question').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const item = btn.parentElement;
-        item.classList.toggle('open');
+    /* ── SMOOTH NAV ────────────────────────────────────── */
+    document.querySelectorAll('a[href^="#"]').forEach(a => {
+      a.addEventListener('click', e => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+      });
+    });
+
+    /* ── ROUTE ENTRY HOVER TILT ────────────────────────── */
+    document.querySelectorAll('.route-entry').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const y = ((e.clientY - rect.top) / rect.height - 0.5) * 4;
+        card.style.transform = `translateY(0) rotateX(${-y}deg)`;
+        card.style.transformOrigin = 'center center';
+        card.style.transformStyle = 'preserve-3d';
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = '';
       });
     });
   </script>
 </body>
-
 </html>
